@@ -35,8 +35,15 @@ A web app for **kanji retention through vocabulary**. It is not a complete vocab
 1. **Data build**: script that merges the sources into one JSON word list with per-kanji base readings, plus a connectivity report (how many dead ends does kanji navigation hit?).
 2. **App**: word card, tappable kanji with reading notes, reveal, reschedule, kanji-based navigation.
 
+## Scope: a light, non-committal aid
+
+This is **not** an SRS and not an Anki replacement. No due dates, no daily quota, no streaks. Open it, tap around, close it.
+
+- **Phone first.** Big kanji, big tap targets, one-handed use.
+- **Kanji tapping is the whole app.** There's no separate review mode.
+- **"Reschedule" is lightweight.** A missed word goes onto a small "missed" pile. When a tap has several candidate words, missed ones are preferred, so they come back naturally while you browse. Getting one right takes it off the pile.
+- **Seen words** are remembered only so navigation prefers fresh ones. Everything is stored in the browser.
+
 ## Open questions
 
-- Target device: phone, desktop, or both?
-- Is kanji-tap navigation the whole app, or is there also a separate "review due" mode?
-- Allow N2/N1 words purely as navigation bridges for kanji that appear in only one N3 word?
+- Allow N2/N1 words purely as navigation bridges for kanji that appear in only one N3 word? (Decide after the connectivity report.)
