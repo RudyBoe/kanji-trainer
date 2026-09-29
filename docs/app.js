@@ -12,11 +12,11 @@ const RECENT = 12; // avoid repeating the last N words when there's a choice
 let words, byId;
 const index = { core: { kr: new Map(), k: new Map() }, bridge: { kr: new Map(), k: new Map() } };
 
-let state = { missed: [], seen: {}, showReadings: false };
+let state = { missed: [], seen: {}, showReadings: false, current: null, history: [] };
 let cur = null;        // current word
 let revealed = false;
 let markedMissed = false;
-const history = [];    // ids of previous words, for Back
+let history = [];      // ids of previous words, for Back
 
 // ---------------------------------------------------------------- storage
 
@@ -27,6 +27,8 @@ function load() {
   } catch {}
 }
 function save() {
+  if (cur) state.current = cur.id;
+  state.history = history.slice(-50);
   try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {}
 }
 const isMissed = (id) => state.missed.includes(id);
@@ -198,9 +200,15 @@ function reveal() {
 
 $("reveal").onclick = reveal;
 $("card").onclick = reveal;
+// Marking takes effect at once, so it survives closing the app.
 $("mark").onclick = () => {
   markedMissed = !markedMissed;
+  const i = state.missed.indexOf(cur.id);
+  if (markedMissed && i < 0) state.missed.push(cur.id);
+  if (!markedMissed && i >= 0) state.missed.splice(i, 1);
+  save();
   $("mark").setAttribute("aria-pressed", markedMissed);
+  $("missed-n").textContent = state.missed.length;
 };
 $("back").onclick = () => {
   if (!history.length) return;
@@ -208,6 +216,7 @@ $("back").onclick = () => {
   cur = byId.get(history.pop());
   revealed = false;
   markedMissed = isMissed(cur.id);
+  save();
   render("");
 };
 $("random").onclick = () => show(fallbackId(cur.id), "random word");
@@ -246,10 +255,20 @@ $("reset").onclick = () => {
 // ---------------------------------------------------------------- start
 
 load();
+// Ask the browser not to clear our storage when space runs low.
+navigator.storage?.persist?.().catch(() => {});
 fetch("words.json")
   .then((r) => r.json())
   .then((data) => {
     words = data;
     buildIndex();
-    show(fallbackId(null), "");
+    history = (state.history || []).filter((id) => byId.has(id));
+    if (byId.has(state.current)) {
+      // Resume where you left off.
+      cur = byId.get(state.current);
+      markedMissed = isMissed(cur.id);
+      render("welcome back");
+    } else {
+      show(fallbackId(null), "");
+    }
   });
