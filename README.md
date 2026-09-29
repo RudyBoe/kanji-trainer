@@ -21,14 +21,17 @@ A web app for **kanji retention through vocabulary**. It is not a complete vocab
 - **English** UI and meanings.
 - **Static app**, no backend. Progress lives in the browser. Hosted on GitHub Pages.
 
-## Data sources (planned)
+## Data sources
 
 | Source | Used for | License |
 |---|---|---|
 | [JMdict](https://www.edrdg.org/jmdict/j_jmdict.html) | Meanings, readings, "usually kana" flags | CC-BY-SA 4.0 |
 | [KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project) | Kanji readings, levels | CC-BY-SA 4.0 |
-| [JmdictFurigana](https://github.com/Doublevil/JmdictFurigana) | Per-kanji reading alignment | CC-BY-SA |
-| [Jonathan Waller's JLPT lists](http://www.tanos.co.uk/jlpt/) | JLPT vocab/kanji levels | CC-BY |
+| [Jonathan Waller's JLPT lists](http://www.tanos.co.uk/jlpt/) (via [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks)) | JLPT vocab/kanji levels | CC-BY |
+
+All three arrive bundled in the [`kotobako-data`](https://www.npmjs.com/package/kotobako-data) npm package (CC-BY-SA 4.0), which `build/build.py` downloads. Per-kanji readings are aligned by the build script itself against KANJIDIC on/kun readings, allowing rendaku (が), handakuten (ぽ) and gemination (っ). Words that don't align (jukujikun like 今日, 大人, 時計) are dropped. See `build/report.md`.
+
+The word list `app/words.json` is licensed CC-BY-SA 4.0.
 
 ## Plan
 
