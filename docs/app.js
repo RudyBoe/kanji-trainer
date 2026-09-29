@@ -432,7 +432,7 @@ $("clear-export").onclick = () => {
 load();
 // Ask the browser not to clear our storage when space runs low.
 navigator.storage?.persist?.().catch(() => {});
-fetch("words.json")
+fetch("words.json?v=6")
   .then((r) => r.json())
   .then((data) => {
     words = data;
