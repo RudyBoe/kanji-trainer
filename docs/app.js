@@ -112,13 +112,21 @@ function candidates(k, b, id, fresh = false) {
   return [[], null];
 }
 
+// A fresh start after a dead end: avoid words sharing a kanji with the last
+// few words, and take a missed word only some of the time, so a small missed
+// pile doesn't restart every chain on the same kanji.
+const MISSED_SHARE = 0.4;
 function fallbackId(excludeId) {
-  const recent = new Set([...history.slice(-RECENT), excludeId]);
-  const missed = missedInDeck().filter((id) => !recent.has(id));
-  if (missed.length) return rand(missed);
-  const core = words.filter((w) => inDeck(w) && !recent.has(w.id)).map((w) => w.id);
-  const unseen = core.filter((id) => !state.seen[id]);
-  return rand(unseen.length ? unseen : core);
+  const recentIds = [...history.slice(-RECENT), excludeId].filter((id) => byId.has(id));
+  const recent = new Set(recentIds);
+  const recentK = new Set(recentIds.flatMap((id) => kanjiSegs(byId.get(id)).map((x) => x.k)));
+  const deck = words.filter((w) => inDeck(w) && !recent.has(w.id));
+  const fresh = deck.filter((w) => !kanjiSegs(w).some((x) => recentK.has(x.k)));
+  const pool = (fresh.length ? fresh : deck).map((w) => w.id);
+  const missed = pool.filter(isMissed);
+  if (missed.length && Math.random() < MISSED_SHARE) return rand(missed);
+  const unseen = pool.filter((id) => !state.seen[id]);
+  return rand(unseen.length ? unseen : pool);
 }
 
 const missedInDeck = () => state.missed.filter((id) => byId.has(id) && inDeck(byId.get(id)));
