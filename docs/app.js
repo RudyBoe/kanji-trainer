@@ -5,7 +5,7 @@
 //    s: [[text, reading, base, "on"|"kun", kanjiLevel] | [kana, kana]]}
 // Deck: words at the chosen level and easier. Words one level harder are
 // bridges, shown only when a tapped kanji has no other deck word.
-// Kanji levels follow KANJIDIC's old scale: 5, 4, 2 (= N3+N2), 1.
+// Kanji levels: 5..1 (N5..N1), from 5-level JLPT kanji lists.
 
 const $ = (id) => document.getElementById(id);
 const STORE = "kanji-trainer-v1";
@@ -20,6 +20,10 @@ let state = {
   kanjiLevel: 1,     // kanji harder than this are...
   hardKanji: "hint", // ..."hint": shown with their reading, "hide": word left out
   exportList: [],
+  game: true,        // points game
+  days: {},          // "YYYY-MM-DD" -> points scored that day
+  scored: {},        // word id -> day it last scored (a word scores once a day)
+  rightKanji: {},    // kanji -> level, for every kanji you've gotten right
 };
 let cur = null;        // current word
 let revealed = false;
@@ -133,8 +137,8 @@ const missedInDeck = () => state.missed.filter((id) => byId.has(id) && inDeck(by
 
 // ---------------------------------------------------------------- render
 
-function show(id, via) {
-  leave();
+function show(id, via, msg) {
+  const gain = leave();
   if (cur) history.push(cur.id);
   cur = byId.get(id);
   revealed = false;
@@ -142,15 +146,69 @@ function show(id, via) {
   state.seen[id] = Date.now();
   save();
   render(via);
+  const parts = [gain ? `+${gain}` : "", msg || ""].filter(Boolean);
+  if (parts.length) toast(parts.join(" · "));
 }
 
-// Leaving a revealed word updates the missed pile: marked → on, not marked → off.
+// Leaving a revealed word updates the missed pile (marked → on, not marked →
+// off) and scores it if you got it right. Returns the points gained.
 function leave() {
-  if (!cur || !revealed) return;
+  if (!cur || !revealed) return 0;
   const i = state.missed.indexOf(cur.id);
   if (markedMissed && i < 0) state.missed.push(cur.id);
   if (!markedMissed && i >= 0) state.missed.splice(i, 1);
+  const gain = markedMissed ? 0 : score(cur);
   save();
+  renderScore();
+  return gain;
+}
+
+// ---------------------------------------------------------------- points game
+
+// N5 = 1 point ... N1 = 5 points per kanji; half when the reading was shown
+// as a hint. A word scores once per day.
+const kanjiPoints = (seg) => 6 - seg[4];
+const hinted = (seg) => state.showReadings || (state.hardKanji === "hint" && isHard(seg));
+const today = () => new Date().toLocaleDateString("sv"); // YYYY-MM-DD, local time
+
+function wordPoints(w) {
+  const segs = w.s.filter((s) => s.length > 2 && s[0] !== "々");
+  const raw = segs.reduce((sum, s) => sum + kanjiPoints(s) * (hinted(s) ? 0.5 : 1), 0);
+  return Math.max(1, Math.round(raw));
+}
+
+function score(w) {
+  if (!state.game || state.scored[w.id] === today()) return 0;
+  const gain = wordPoints(w);
+  state.scored[w.id] = today();
+  state.days[today()] = (state.days[today()] || 0) + gain;
+  for (const s of w.s) if (s.length > 2 && s[0] !== "々" && !hinted(s)) state.rightKanji[s[0]] = s[4];
+  return gain;
+}
+
+const dayNum = (d) => Math.round(Date.parse(d + "T12:00:00Z") / 864e5);
+
+// Current streak: consecutive days with points, ending today (or yesterday,
+// so the streak survives until you've had a chance to play today).
+function streaks() {
+  const days = Object.keys(state.days).filter((d) => state.days[d] > 0).map(dayNum).sort((a, b) => a - b);
+  let longest = 0, run = 0;
+  days.forEach((d, i) => {
+    run = i && d === days[i - 1] + 1 ? run + 1 : 1;
+    longest = Math.max(longest, run);
+  });
+  const last = days[days.length - 1], now = dayNum(today());
+  const current = last === now || last === now - 1 ? run : 0;
+  return { current, longest };
+}
+
+const totalPoints = () => Object.values(state.days).reduce((a, b) => a + b, 0);
+
+function renderScore() {
+  $("score").hidden = !state.game;
+  if (!state.game) return;
+  $("streak").textContent = `🔥 ${streaks().current}`;
+  $("pts").textContent = `${state.days[today()] || 0} today · ${totalPoints()}`;
 }
 
 function render(via) {
@@ -173,10 +231,12 @@ function render(via) {
       const [ids, tier] = candidates(k, s[2], cur.id);
       const base = s[1] !== s[2] ? `<small>${s[2]}</small>` : "";
       const count = tier === "same reading" ? `+${ids.length}` : tier ? `~${ids.length}` : "–";
+      const pts = state.game && s[0] !== "々"
+        ? `<span class="lvl" title="N${s[4]}">${"●".repeat(kanjiPoints(s))}</span>` : "";
       el.innerHTML =
         `<span class="note${isHard(s) ? " hard" : ""}">${base}${s[1]}</span>` +
         `<button class="k" aria-label="Next word with ${k}">${s[0]}</button>` +
-        `<span class="count${tier ? "" : " dead"}">${count}</span>`;
+        `<span class="count${tier ? "" : " dead"}">${count}</span>` + pts;
       el.querySelector("button").onclick = (e) => { e.stopPropagation(); tap(k, s[2]); };
     }
     box.append(el);
@@ -192,6 +252,7 @@ function render(via) {
   $("add").setAttribute("aria-pressed", state.exportList.includes(cur.id));
   $("back").disabled = !history.length;
   $("missed-n").textContent = state.missed.length;
+  renderScore();
 }
 
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
@@ -211,8 +272,8 @@ function tap(k, b) {
   const [ids, tier] = candidates(k, b, cur.id, true);
   if (!ids.length) {
     const any = candidates(k, b, cur.id)[0].length;
-    toast(any ? `You just saw every word with ${k}` : `No other word with ${k}`);
-    show(fallbackId(cur.id), `<b>${k}</b> · ${any ? "all seen just now" : "dead end"}, random word`);
+    show(fallbackId(cur.id), `<b>${k}</b> · ${any ? "all seen just now" : "dead end"}, random word`,
+      any ? `You just saw every word with ${k}` : `No other word with ${k}`);
     return;
   }
   show(pick(ids), `<b>${k}</b> ${b} · ${tier}`);
@@ -235,10 +296,12 @@ $("mark").onclick = () => {
   save();
   $("mark").setAttribute("aria-pressed", markedMissed);
   $("missed-n").textContent = state.missed.length;
+  renderScore();
 };
 $("back").onclick = () => {
   if (!history.length) return;
-  leave();
+  const gain = leave();
+  if (gain) toast(`+${gain}`);
   cur = byId.get(history.pop());
   revealed = false;
   markedMissed = isMissed(cur.id);
@@ -268,17 +331,31 @@ function updateStats() {
   const seen = Object.keys(state.seen).filter((id) => byId.has(id) && inDeck(byId.get(id))).length;
   $("stats").textContent = `Deck: ${deck} words · seen ${seen} · ${missedInDeck().length} missed`;
   $("export-n").textContent = state.exportList.length;
+  const { current, longest } = streaks();
+  const best = Math.max(0, ...Object.values(state.days));
+  const rare = Object.entries(state.rightKanji).sort((a, b) => a[1] - b[1]).slice(0, 12)
+    .map(([k, lv]) => k).join("");
+  $("game-stats").textContent = `Total ${totalPoints()} · today ${state.days[today()] || 0} · best day ${best} · ` +
+    `streak ${current} (longest ${longest})` + (rare ? ` · rarest right: ${rare}` : "");
+  $("game-stats").hidden = !state.game;
   $("export").disabled = $("clear-export").disabled = !state.exportList.length;
 }
 
 $("menu-btn").onclick = () => {
   $("opt-readings").checked = state.showReadings;
+  $("opt-game").checked = state.game;
   $("opt-words").value = state.wordLevel;
   $("opt-kanji").value = state.kanjiLevel;
   $("opt-hard").value = state.hardKanji;
   $("opt-hard").disabled = state.kanjiLevel === 1;
   updateStats();
   $("menu").showModal();
+};
+$("opt-game").onchange = (e) => {
+  state.game = e.target.checked;
+  save();
+  updateStats();
+  render($("via").innerHTML);
 };
 $("opt-readings").onchange = (e) => {
   state.showReadings = e.target.checked;
@@ -299,9 +376,12 @@ for (const id of ["opt-words", "opt-kanji", "opt-hard"]) {
   };
 }
 $("reset").onclick = () => {
-  if (!confirm("Forget all seen and missed words?")) return;
+  if (!confirm("Forget all seen and missed words, points and streaks?")) return;
   state.missed = [];
   state.seen = {};
+  state.days = {};
+  state.scored = {};
+  state.rightKanji = {};
   markedMissed = false;
   save();
   $("menu").close();

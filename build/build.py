@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build the kanji-trainer word list.
 
-Source: the `kotobako-data` npm package (CC-BY-SA 4.0), which bundles
-jmdict-simplified (JMdict + KANJIDIC2) and JLPT tags from open-anki-jlpt-decks
-(Jonathan Waller's lists).
+Sources (npm packages):
+  - `kotobako-data` (CC-BY-SA 4.0): jmdict-simplified (JMdict + KANJIDIC2) and
+    JLPT word tags from open-anki-jlpt-decks (Jonathan Waller's lists),
+  - `jlpt` (MIT): unofficial 5-level JLPT kanji lists (N5..N2; the rest is N1).
 
 Steps:
   1. keep words whose written form is kanji (+ okurigana) and that are not
@@ -28,7 +29,33 @@ CACHE = os.path.join(ROOT, "build", ".cache")
 LEVELS = ["N5", "N4", "N3"]   # the core deck
 BRIDGE_LEVELS = ["N2"]        # candidates for navigation bridges
 
+KANJI_PKG, KANJI_PKG_VERSION = "jlpt", "1.0.4"
+
 # ---------------------------------------------------------------- download
+
+def fetch_npm(name, version, member):
+    """Download one file from an npm package tarball (cached)."""
+    path = os.path.join(CACHE, f"{name}-{version}-{os.path.basename(member)}")
+    if not os.path.exists(path):
+        os.makedirs(CACHE, exist_ok=True)
+        tgz = path + ".tgz"
+        urllib.request.urlretrieve(f"https://registry.npmjs.org/{name}/-/{name}-{version}.tgz", tgz)
+        with tarfile.open(tgz) as t:
+            data = t.extractfile(f"package/{member}").read()
+        with open(path, "wb") as f:
+            f.write(data)
+        os.remove(tgz)
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_kanji_levels():
+    """{kanji: 5..2} from the 5-level lists; kanji not listed are N1."""
+    levels = {}
+    for lv in (5, 4, 3, 2):
+        for k in fetch_npm(KANJI_PKG, KANJI_PKG_VERSION, f"src/n{lv}.json"):
+            levels.setdefault(k["kanji"], lv)
+    return levels
 
 def load_source():
     path = os.path.join(CACHE, f"{PKG}-{PKG_VERSION}.json")
@@ -157,21 +184,19 @@ def align(word, reading, kdic):
 # ---------------------------------------------------------------- build
 
 def seg_levels(segs, klevel):
-    """Kanji JLPT level per segment (5..1). KANJIDIC uses the old 4-level
-    scale, so 'N2' covers N3+N2; untagged kanji count as N1. 々 takes the
-    previous kanji's level."""
+    """Kanji JLPT level per segment (5..1); unlisted kanji count as N1.
+    々 takes the previous kanji's level."""
     out, prev = [], 1
     for s in segs:
         if "b" in s and s["t"] != "々":
-            lv = klevel.get(s["t"])
-            prev = int(lv[1]) if lv else 1
+            prev = klevel.get(s["t"], 1)
         out.append(prev if "b" in s else None)
     return out
 
 def main():
     src = load_source()["datasets"]
     kdic = {k["char"]: kanji_readings(k) for k in src["kanji"]}
-    klevel = {k["char"]: k["jlpt"] for k in src["kanji"]}
+    klevel = load_kanji_levels()
 
     stats = Counter()
     dropped = defaultdict(list)

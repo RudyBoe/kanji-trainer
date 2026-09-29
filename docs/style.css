@@ -55,7 +55,21 @@ header {
   padding: 12px 0;
 }
 header button { min-width: 48px; font-size: 1.2rem; }
-header #missed { margin-right: auto; font-size: 1rem; color: var(--accent); }
+header #missed { font-size: 1rem; color: var(--accent); }
+#score {
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.25;
+  font-size: .85rem;
+  padding-left: 4px;
+  white-space: nowrap;
+}
+#score[hidden] { display: none; }
+#streak { font-weight: 600; }
+#pts { color: var(--muted); font-size: .8rem; }
+header:not(:has(#score:not([hidden]))) #missed { margin-right: auto; }
 
 main {
   flex: 1;
@@ -175,3 +189,6 @@ dialog select:disabled { opacity: .4; }
 dialog h2 + .row, dialog .row + .credits { margin-top: 0; }
 dialog .row button { margin-top: 0; }
 dialog h2:not(:first-child) { margin: 20px 0 10px; font-size: 1rem; }
+
+.lvl { font-size: .55rem; letter-spacing: 1px; color: var(--accent); height: 1.2em; visibility: hidden; opacity: .8; }
+.revealed .lvl { visibility: visible; }
