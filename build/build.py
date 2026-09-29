@@ -156,6 +156,18 @@ def align(word, reading, kdic):
 
 # ---------------------------------------------------------------- build
 
+def seg_levels(segs, klevel):
+    """Kanji JLPT level per segment (5..1). KANJIDIC uses the old 4-level
+    scale, so 'N2' covers N3+N2; untagged kanji count as N1. 々 takes the
+    previous kanji's level."""
+    out, prev = [], 1
+    for s in segs:
+        if "b" in s and s["t"] != "々":
+            lv = klevel.get(s["t"])
+            prev = int(lv[1]) if lv else 1
+        out.append(prev if "b" in s else None)
+    return out
+
 def main():
     src = load_source()["datasets"]
     kdic = {k["char"]: kanji_readings(k) for k in src["kanji"]}
@@ -190,8 +202,8 @@ def main():
             "r": r,
             "lv": int(lvl[1]),
             "m": e["meanings"][:4],
-            "s": [[s["t"], s["r"]] + ([s["b"], s["y"]] if "b" in s else [])
-                  for s in segs],
+            "s": [[s["t"], s["r"]] + ([s["b"], s["y"], kl] if "b" in s else [])
+                  for s, kl in zip(segs, seg_levels(segs, klevel))],
         })
 
     os.makedirs(os.path.join(ROOT, "docs"), exist_ok=True)

@@ -39,7 +39,12 @@ The app is the static site in `docs/` (served by GitHub Pages from `main` → `/
 
 To rebuild the word list: `python3 build/build.py` (writes `docs/words.json` and `build/report.md`).
 
-The deck is N5–N3 words. N2 words act only as **bridges**: they appear when a tapped kanji has no other N5–N3 word. Under each revealed kanji: `+n` words share this reading, `~n` only other readings, `–` dead end (random word).
+Settings (⋯):
+- **Words:** N5, N5–N4 or N5–N3 (default). Words one level harder are **links**: they appear only when a tapped kanji has no other word in the deck.
+- **Kanji up to:** N4, N2 (incl. N3) or N1. KANJIDIC uses the old 4-level scale, so N3 and N2 kanji can't be told apart. Harder kanji are either shown with their reading or the word is left out.
+- **Anki list:** `+ Anki` on a revealed card adds it. Export writes a tab-separated file for Anki's File → Import (Basic cards, deck "Kanji Trainer", tags `kanji-trainer N3`). The list stays until you clear it.
+
+Under each revealed kanji: `+n` words share this reading, `~n` only other readings, `–` dead end (random word).
 
 ## Plan
 

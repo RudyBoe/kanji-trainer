@@ -31,7 +31,10 @@
 <footer>
   <button id="reveal" class="primary">Show</button>
   <div id="after" hidden>
-    <button id="mark" aria-pressed="false">✗ Missed</button>
+    <div class="row">
+      <button id="mark" aria-pressed="false">✗ Missed</button>
+      <button id="add" aria-pressed="false">+ Anki</button>
+    </div>
     <p class="hint">Tap a kanji to continue<br><small>+n same reading · ~n other reading · – dead end</small></p>
   </div>
 </footer>
@@ -39,8 +42,34 @@
 <dialog id="menu">
   <form method="dialog">
     <h2>Settings</h2>
+    <label class="field">Words
+      <select id="opt-words">
+        <option value="5">N5 · N4 links</option>
+        <option value="4">N5–N4 · N3 links</option>
+        <option value="3">N5–N3 · N2 links</option>
+      </select>
+    </label>
+    <label class="field">Kanji up to
+      <select id="opt-kanji">
+        <option value="4">N4</option>
+        <option value="2">N2 (incl. N3)</option>
+        <option value="1">N1 (all)</option>
+      </select>
+    </label>
+    <label class="field">Harder kanji
+      <select id="opt-hard">
+        <option value="hint">Show with reading</option>
+        <option value="hide">Leave word out</option>
+      </select>
+    </label>
     <label><input type="checkbox" id="opt-readings"> Show readings before reveal</label>
     <p id="stats"></p>
+    <h2>Anki list: <span id="export-n">0</span> words</h2>
+    <div class="row">
+      <button type="button" id="export">Export</button>
+      <button type="button" id="clear-export">Clear</button>
+    </div>
+    <p class="credits">Import in Anki with File → Import. Creates Basic cards in a "Kanji Trainer" deck.</p>
     <button type="button" id="reset" class="danger">Reset progress</button>
     <p class="credits">Word data: <a href="https://www.edrdg.org/edrdg/licence.html">JMdict &amp; KANJIDIC2</a> (EDRDG, CC-BY-SA 4.0), JLPT levels from Jonathan Waller's lists (CC-BY). <a href="https://github.com/RudyBoe/kanji-trainer">Source</a></p>
     <button value="close" class="primary">Close</button>
