@@ -31,7 +31,15 @@ A web app for **kanji retention through vocabulary**. It is not a complete vocab
 
 All three arrive bundled in the [`kotobako-data`](https://www.npmjs.com/package/kotobako-data) npm package (CC-BY-SA 4.0), which `build/build.py` downloads. Per-kanji readings are aligned by the build script itself against KANJIDIC on/kun readings, allowing rendaku (が), handakuten (ぽ) and gemination (っ). Words that don't align (jukujikun like 今日, 大人, 時計) are dropped. See `build/report.md`.
 
-The word list `app/words.json` is licensed CC-BY-SA 4.0.
+The word list `docs/words.json` is licensed CC-BY-SA 4.0.
+
+## Running it
+
+The app is the static site in `docs/` (served by GitHub Pages from `main` → `/docs`). Locally: `cd docs && python3 -m http.server`, then open http://localhost:8000.
+
+To rebuild the word list: `python3 build/build.py` (writes `docs/words.json` and `build/report.md`).
+
+The deck is N5–N3 words. N2 words act only as **bridges**: they appear when a tapped kanji has no other N5–N3 word. Under each revealed kanji: `+n` words share this reading, `~n` only other readings, `–` dead end (random word).
 
 ## Plan
 

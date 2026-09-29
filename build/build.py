@@ -10,7 +10,7 @@ Steps:
      "usually kana" (those arrive with a kana headword),
   2. align the reading to the kanji one by one using KANJIDIC on/kun readings,
      allowing rendaku, handakuten and gemination (drops jukujikun like 今日),
-  3. write app/words.json and build/report.md.
+  3. write docs/words.json and build/report.md.
 
 Usage: python3 build/build.py
 """
@@ -194,8 +194,8 @@ def main():
                   for s in segs],
         })
 
-    os.makedirs(os.path.join(ROOT, "app"), exist_ok=True)
-    with open(os.path.join(ROOT, "app", "words.json"), "w", encoding="utf-8") as f:
+    os.makedirs(os.path.join(ROOT, "docs"), exist_ok=True)
+    with open(os.path.join(ROOT, "docs", "words.json"), "w", encoding="utf-8") as f:
         json.dump(words, f, ensure_ascii=False, separators=(",", ":"))
 
     write_report(words, stats, dropped, klevel)
