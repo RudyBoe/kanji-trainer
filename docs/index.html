@@ -13,11 +13,15 @@
 </head>
 <body>
 <header>
-  <button id="back" aria-label="Back" disabled>←</button>
-  <button id="missed" aria-label="Go to a missed word">✗ <span id="missed-n">0</span></button>
+  <div class="side">
+    <button id="back" aria-label="Back" disabled>←</button>
+    <button id="missed" aria-label="Go to a missed word">✗ <span id="missed-n">0</span></button>
+  </div>
   <div id="score" hidden><span id="streak"></span><span id="pts"></span></div>
-  <button id="random" aria-label="Random word">⤮</button>
-  <button id="menu-btn" aria-label="Settings">⋯</button>
+  <div class="side end">
+    <button id="random" aria-label="Random word">⤮</button>
+    <button id="menu-btn" aria-label="Settings">⋯</button>
+  </div>
 </header>
 
 <main id="card">
