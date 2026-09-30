@@ -496,10 +496,10 @@ function ankiText() {
     "#tags column:3", ...rows].join("\n") + "\n";
 }
 
-$("export").onclick = async () => {
-  const name = `kanji-trainer-anki-${new Date().toISOString().slice(0, 10)}.txt`;
-  const file = new File([ankiText()], name, { type: "text/plain" });
-  // On phones, the share sheet can hand the file straight to Anki or Files.
+// On phones, the share sheet can hand the file to Anki, Files, mail, ...;
+// elsewhere it's a normal download.
+async function saveFile(name, text, type) {
+  const file = new File([text], name, { type });
   if (navigator.canShare?.({ files: [file] })) {
     try { await navigator.share({ files: [file] }); return; }
     catch (e) { if (e.name === "AbortError") return; }
@@ -509,6 +509,35 @@ $("export").onclick = async () => {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$("export").onclick = () =>
+  saveFile(`kanji-trainer-anki-${today()}.txt`, ankiText(), "text/plain");
+
+// ---------------------------------------------------------------- backup
+
+$("backup").onclick = () => {
+  save();
+  const data = { app: "kanji-trainer", format: 1, saved: new Date().toISOString(), state };
+  saveFile(`kanji-trainer-backup-${today()}.json`, JSON.stringify(data), "application/json");
+};
+$("restore").onclick = () => $("restore-file").click();
+$("restore-file").onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  let data;
+  try { data = JSON.parse(await f.text()); } catch { data = null; }
+  if (data?.app !== "kanji-trainer" || typeof data.state !== "object") {
+    toast("That isn't a Kanji Trainer backup");
+    return;
+  }
+  const s = data.state;
+  const pts = Object.values(s.days || {}).reduce((a, b) => a + b, 0);
+  const seen = Object.keys(s.seen || {}).length;
+  if (!confirm(`Restore the backup from ${data.saved.slice(0, 10)}? (${seen} words seen, ${pts} points)\n\nThis replaces your progress on this device.`)) return;
+  try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { toast("Couldn't save the backup here"); return; }
+  location.reload();
 };
 $("clear-export").onclick = () => {
   if (!confirm(`Clear the ${state.exportList.length} words on the Anki list?`)) return;
@@ -523,7 +552,9 @@ $("clear-export").onclick = () => {
 load();
 // Ask the browser not to clear our storage when space runs low.
 navigator.storage?.persist?.().catch(() => {});
-fetch("words.json?v=8")
+// Offline support (see sw.js).
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+fetch("words.json?v=9")
   .then((r) => r.json())
   .then((data) => {
     words = data;

@@ -35,7 +35,7 @@ Tap **details** under a kanji (after Show), or **hold** the kanji (right-click o
 
 Holding a kanji *before* Show gives the answer away, so that word won't score.
 
-**Tip:** add it to your home screen (iPhone: Share → *Add to Home Screen*; Android: ⋮ → *Add to Home screen*) so it opens like an app.
+**Install it:** add it to your home screen (iPhone: Share → *Add to Home Screen*; Android: ⋮ → *Install app* / *Add to Home screen*). It then opens like an app, with its own icon, and **works offline**: after the first visit everything (words, kanji details, stroke order) is stored on the device. Updates are picked up automatically the next time you open it with a connection.
 
 ## Settings (⋯)
 
@@ -92,6 +92,8 @@ Works with desktop Anki and AnkiDroid. AnkiMobile (iPhone) support for text impo
 
 Seen words, missed pile, points, collection, badges, Anki list and settings are saved **in your browser on that device only**. Nothing is sent anywhere, so sharing the link with others is fine: everyone has their own progress. The app reopens at the word you left.
 
+**Backup:** Settings → *Backup* → **Save backup** writes all your progress (seen and missed words, points, streak, collection, badges, Anki list, settings) to a `.json` file; on a phone the share sheet lets you save it to Files, Drive, mail, … **Restore** on another phone or browser loads it there (it replaces the progress on that device). Worth doing now and then, and before changing phones.
+
 You can lose progress if you use a private/incognito tab, clear your browser data, or open the link inside another app's built-in browser (WhatsApp, Messenger, …). On iPhone, the home-screen icon and Safari keep separate progress.
 
 ---
@@ -121,4 +123,5 @@ JMdict, KANJIDIC2, KanjiVG and the word levels come bundled in the [`kotobako-da
 - The app is the static site in `docs/` (plain HTML/CSS/JS, no build step), served by GitHub Pages from `main` → `/docs`.
 - Run locally: `cd docs && python3 -m http.server`, then open http://localhost:8000.
 - Rebuild the word list: `python3 build/build.py` (downloads the data, writes `docs/words.json`, `docs/kanji.json` and `build/report.md`).
-- Code: `docs/app.js` (cards, navigation, points), `docs/game.js` (collection, badges), `docs/details.js` (kanji panel, stroke order, practice). When you change a file, bump its `?v=` tag in `index.html` so phones don't mix cached old files with new ones.
+- Code: `docs/app.js` (cards, navigation, points), `docs/game.js` (collection, badges), `docs/details.js` (kanji panel, stroke order, practice). When you change a file, bump the `?v=` tags in `index.html` (and in the `fetch()` calls for the JSON files) **and** `VERSION` in `docs/sw.js`, so phones don't mix cached old files with new ones.
+- Offline: `docs/sw.js` (service worker) caches the app on install; pages are network-first, other files cache-first. `docs/manifest.webmanifest` + `docs/icons/` make it installable.
