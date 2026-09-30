@@ -266,7 +266,10 @@ function render(via) {
     const el = document.createElement("div");
     el.className = "seg";
     if (s.length < 3) {
-      el.innerHTML = `<span class="note"></span><span class="kana">${s[0]}</span><span class="count"></span>`;
+      // Same rows as a kanji (hidden), so kana line up with the kanji.
+      el.innerHTML = `<span class="note"></span><span class="kana">${s[0]}</span><span class="count"></span>` +
+        (state.game ? `<span class="lvl"></span>` : "") +
+        `<button class="det ph" tabindex="-1" aria-hidden="true">details</button>`;
     } else {
       const k = s[0] === "々" ? prevK : s[0];
       prevK = k;

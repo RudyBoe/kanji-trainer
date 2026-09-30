@@ -204,12 +204,13 @@ dialog h2:not(:first-child) { margin: 20px 0 10px; font-size: 1rem; }
   min-height: 28px;
   padding: 0 10px;
   margin-top: 4px;
-  font-size: .75rem;
+  font: 400 .75rem var(--sans);
   border-radius: 8px;
   color: var(--muted);
   visibility: hidden;
 }
 .revealed .det { visibility: visible; }
+.det.ph { visibility: hidden !important; pointer-events: none; }
 #via button { min-height: 28px; padding: 0 10px; font-size: .8rem; margin-left: 4px; }
 
 /* bottom sheets: details & collection */
