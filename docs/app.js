@@ -5,7 +5,7 @@
 //    s: [[text, reading, base, "on"|"kun", kanjiLevel] | [kana, kana]]}
 // Deck: words at the chosen level and easier. Words one level harder are
 // bridges, shown only when a tapped kanji has no other deck word.
-// Kanji levels: 5..1 (N5..N1), from 5-level JLPT kanji lists.
+// Kanji levels: 5..1 (N5..N1), from Jonathan Waller's JLPT kanji lists.
 
 const $ = (id) => document.getElementById(id);
 const STORE = "kanji-trainer-v1";
@@ -523,7 +523,7 @@ $("clear-export").onclick = () => {
 load();
 // Ask the browser not to clear our storage when space runs low.
 navigator.storage?.persist?.().catch(() => {});
-fetch("words.json?v=7")
+fetch("words.json?v=8")
   .then((r) => r.json())
   .then((data) => {
     words = data;

@@ -100,7 +100,7 @@ You can lose progress if you use a private/incognito tab, clear your browser dat
 
 - **Kanji-only words.** Words usually written in kana (沢山 → たくさん), jukujikun (今日, 大人, 時計) and words whose reading can't be split kanji by kanji are left out.
 - **Per-kanji readings** are matched against KANJIDIC on/kun readings, allowing rendaku (小包 づつみ), handakuten (散歩 ぽ) and gemination (学校 がっ, 切手 きっ). In-word readings are grouped under their base reading (がく) for navigation.
-- **Levels.** Words: JLPT N5–N2 (N2 is used only for links). Kanji: 5-level JLPT kanji lists (N5–N2; unlisted kanji count as N1). There are no official lists since 2010, so these, like all JLPT lists, are community estimates.
+- **Levels.** Words: JLPT N5–N2 (N2 is used only for links). Kanji: Jonathan Waller's JLPT kanji lists (unlisted kanji count as N1). There are no official lists since 2010, so these, like all JLPT lists, are community estimates.
 
 Result: 2,691 words at N5–N3 plus 1,215 N2 link words. `build/report.md` has the numbers (how often a tap leads somewhere, dead-end kanji, what was dropped and why).
 
@@ -111,7 +111,7 @@ Result: 2,691 words at N5–N3 plus 1,215 N2 link words. `build/report.md` has t
 | [JMdict](https://www.edrdg.org/jmdict/j_jmdict.html) | Meanings, readings, "usually kana" flags | CC-BY-SA 4.0 |
 | [KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project) | Kanji readings, levels | CC-BY-SA 4.0 |
 | [Jonathan Waller's JLPT lists](http://www.tanos.co.uk/jlpt/) (via [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks)) | JLPT word levels | CC-BY |
-| [`jlpt`](https://www.npmjs.com/package/jlpt) npm package | JLPT kanji levels (N5–N2) | MIT |
+| Jonathan Waller's JLPT kanji lists (via the [`kanji-data`](https://www.npmjs.com/package/kanji-data) npm package, MIT) | JLPT kanji levels (N5 79 · N4 166 · N3 367 · N2 367 · N1 1,232) | CC-BY |
 | [KanjiVG](https://kanjivg.tagaini.net/) | Stroke order | CC-BY-SA 3.0 |
 
 JMdict, KANJIDIC2, KanjiVG and the word levels come bundled in the [`kotobako-data`](https://www.npmjs.com/package/kotobako-data) npm package (CC-BY-SA 4.0). The generated `docs/words.json` and `docs/kanji.json` are licensed CC-BY-SA 4.0.

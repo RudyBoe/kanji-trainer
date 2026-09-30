@@ -4,7 +4,7 @@
 Sources (npm packages):
   - `kotobako-data` (CC-BY-SA 4.0): jmdict-simplified (JMdict + KANJIDIC2) and
     JLPT word tags from open-anki-jlpt-decks (Jonathan Waller's lists),
-  - `jlpt` (MIT): unofficial 5-level JLPT kanji lists (N5..N2; the rest is N1).
+  - `kanji-data` (MIT): Jonathan Waller's JLPT kanji lists (N5..N1).
 
 Steps:
   1. keep words whose written form is kanji (+ okurigana) and that are not
@@ -29,7 +29,7 @@ CACHE = os.path.join(ROOT, "build", ".cache")
 LEVELS = ["N5", "N4", "N3"]   # the core deck
 BRIDGE_LEVELS = ["N2"]        # candidates for navigation bridges
 
-KANJI_PKG, KANJI_PKG_VERSION = "jlpt", "1.0.4"
+KANJI_PKG, KANJI_PKG_VERSION = "kanji-data", "1.1.0"
 
 # ---------------------------------------------------------------- download
 
@@ -50,11 +50,12 @@ def fetch_npm(name, version, member):
 
 
 def load_kanji_levels():
-    """{kanji: 5..2} from the 5-level lists; kanji not listed are N1."""
+    """{kanji: 5..1} from Jonathan Waller's JLPT kanji lists; kanji not
+    listed count as N1."""
     levels = {}
-    for lv in (5, 4, 3, 2):
-        for k in fetch_npm(KANJI_PKG, KANJI_PKG_VERSION, f"src/n{lv}.json"):
-            levels.setdefault(k["kanji"], lv)
+    for lv in (5, 4, 3, 2, 1):
+        for k in fetch_npm(KANJI_PKG, KANJI_PKG_VERSION, f"data/lists/jlpt-{lv}.json"):
+            levels.setdefault(k, lv)
     return levels
 
 def load_source():
