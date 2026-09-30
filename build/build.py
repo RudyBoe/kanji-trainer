@@ -11,7 +11,7 @@ Steps:
      "usually kana" (those arrive with a kana headword),
   2. align the reading to the kanji one by one using KANJIDIC on/kun readings,
      allowing rendaku, handakuten and gemination (drops jukujikun like 今日),
-  3. write docs/words.json and build/report.md.
+  3. write docs/words.json, docs/kanji.json and build/report.md.
 
 Usage: python3 build/build.py
 """
@@ -235,7 +235,28 @@ def main():
     with open(os.path.join(ROOT, "docs", "words.json"), "w", encoding="utf-8") as f:
         json.dump(words, f, ensure_ascii=False, separators=(",", ":"))
 
+    write_kanji(words, src["kanji"], klevel)
     write_report(words, stats, dropped, klevel)
+
+
+def write_kanji(words, kanjidic, klevel):
+    """docs/kanji.json: details for every kanji used in a word, loaded by the
+    app on demand. Stroke paths are KanjiVG (109x109 viewBox)."""
+    used = {s[0] for w in words for s in w["s"] if len(s) > 2 and s[0] != "々"}
+    out = {}
+    for k in kanjidic:
+        c = k["char"]
+        if c in used:
+            out[c] = {
+                "m": k["meanings"],
+                "on": k["onyomi"],
+                "kun": k["kunyomi"],
+                "n": k["strokeCount"],
+                "lv": klevel.get(c, 1),
+                "st": k["strokes"],
+            }
+    with open(os.path.join(ROOT, "docs", "kanji.json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
 
 def connectivity(words):

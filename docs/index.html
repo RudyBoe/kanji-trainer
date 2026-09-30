@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&display=swap">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header>
@@ -17,7 +17,7 @@
     <button id="back" aria-label="Back" disabled>←</button>
     <button id="missed" aria-label="Go to a missed word">✗ <span id="missed-n">0</span></button>
   </div>
-  <div id="score" hidden><span id="streak"></span><span id="pts"></span></div>
+  <button id="score" hidden aria-label="Collection and badges"><span id="streak"></span><span id="pts"></span></button>
   <div class="side end">
     <button id="random" aria-label="Random word">⤮</button>
     <button id="menu-btn" aria-label="Settings">⋯</button>
@@ -40,7 +40,7 @@
       <button id="mark" aria-pressed="false">✗ Missed</button>
       <button id="add" aria-pressed="false">+ Anki</button>
     </div>
-    <p class="hint">Tap a kanji to continue<br><small>+n same reading · ~n other reading · – dead end · ● points</small></p>
+    <p class="hint">Tap a kanji to continue · hold it or tap <i>details</i> to explore<br><small>+n same reading · ~n other reading · – dead end · ● points</small></p>
   </div>
 </footer>
 
@@ -74,7 +74,8 @@
     <h2>Points game</h2>
     <label><input type="checkbox" id="opt-game"> Points &amp; streak</label>
     <p id="game-stats" class="credits"></p>
-    <p class="credits">Right answer = revealed and not marked missed. Per kanji: N5 1 point … N1 5 points (●), half if its reading was shown as a hint. Each word scores once a day.</p>
+    <button type="button" id="open-collection">Collection &amp; badges</button>
+    <p class="credits">Right answer = revealed and not marked missed. Per kanji: N5 1 point … N1 5 points (●), half if its reading was shown as a hint. Each word scores once a day; a word from the missed pile scores double. Kanji level up: bronze (right in a word, +2), silver (3 words, +5), gold (every reading, +10).</p>
     <h2>Anki list: <span id="export-n">0</span> words</h2>
     <div class="row">
       <button type="button" id="export">Export</button>
@@ -82,12 +83,24 @@
     </div>
     <p class="credits">Import in Anki with File → Import. Creates Basic cards in a "Kanji Trainer" deck.</p>
     <button type="button" id="reset" class="danger">Reset progress</button>
-    <p class="credits">Word data: <a href="https://www.edrdg.org/edrdg/licence.html">JMdict &amp; KANJIDIC2</a> (EDRDG, CC-BY-SA 4.0), JLPT word levels from Jonathan Waller's lists (CC-BY), kanji levels from the <a href="https://www.npmjs.com/package/jlpt">jlpt</a> package (MIT). <a href="https://github.com/RudyBoe/kanji-trainer">Source</a></p>
+    <p class="credits">Word data: <a href="https://www.edrdg.org/edrdg/licence.html">JMdict &amp; KANJIDIC2</a> (EDRDG, CC-BY-SA 4.0), JLPT word levels from Jonathan Waller's lists (CC-BY), kanji levels from the <a href="https://www.npmjs.com/package/jlpt">jlpt</a> package (MIT), stroke order from <a href="https://kanjivg.tagaini.net/">KanjiVG</a> (CC-BY-SA 3.0). <a href="https://github.com/RudyBoe/kanji-trainer">Source</a></p>
     <button value="close" class="primary">Close</button>
   </form>
 </dialog>
 
+<dialog id="details" class="sheet">
+  <form method="dialog" class="sheet-head"><button aria-label="Close">✕</button></form>
+  <div id="det-body"></div>
+</dialog>
+
+<dialog id="collection" class="sheet">
+  <form method="dialog" class="sheet-head"><h2>Collection</h2><button aria-label="Close">✕</button></form>
+  <div id="coll-body"></div>
+</dialog>
+
 <div id="toast" role="status"></div>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
+<script src="game.js?v=7"></script>
+<script src="details.js?v=7"></script>
 </body>
 </html>

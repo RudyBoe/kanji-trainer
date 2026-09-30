@@ -13,6 +13,7 @@ const RECENT = 12; // avoid repeating the last N words when there's a choice
 
 let words, byId;
 const index = { core: { kr: new Map(), k: new Map() }, bridge: { kr: new Map(), k: new Map() } };
+const kanjiLevel = new Map(); // kanji -> JLPT level 5..1
 
 let state = {
   missed: [], seen: {}, showReadings: false, current: null, history: [],
@@ -24,11 +25,17 @@ let state = {
   days: {},          // "YYYY-MM-DD" -> points scored that day
   scored: {},        // word id -> day it last scored (a word scores once a day)
   rightKanji: {},    // kanji -> level, for every kanji you've gotten right
+  kstat: {},         // kanji -> {w: [word ids right], r: [readings right], m: times missed}
+  badges: {},        // milestone id -> day earned
+  comebacks: 0,      // missed words later gotten right
 };
 let cur = null;        // current word
 let revealed = false;
 let markedMissed = false;
 let history = [];      // ids of previous words, for Back
+let wasMissed = false; // current word was on the missed pile when it appeared
+let peeked = false;    // details opened before Show: this view doesn't count
+let practice = null;   // {k, ids, i}: practicing all words of one kanji
 
 // ---------------------------------------------------------------- storage
 
@@ -78,6 +85,7 @@ function buildIndex() {
     if (!ix) continue;
     for (const { seg, k, b } of kanjiSegs(w)) {
       if (seg[0] === "々") continue;
+      kanjiLevel.set(k, seg[4]);
       add(ix.kr, k + "|" + b, w.id);
       add(ix.k, k, w.id);
     }
@@ -138,29 +146,57 @@ const missedInDeck = () => state.missed.filter((id) => byId.has(id) && inDeck(by
 // ---------------------------------------------------------------- render
 
 function show(id, via, msg) {
-  const gain = leave();
+  const out = leave();
   if (cur) history.push(cur.id);
-  cur = byId.get(id);
-  revealed = false;
-  markedMissed = isMissed(id);
+  arrive(byId.get(id));
   state.seen[id] = Date.now();
   save();
   render(via);
-  const parts = [gain ? `+${gain}` : "", msg || ""].filter(Boolean);
-  if (parts.length) toast(parts.join(" · "));
+  announce(out, msg);
+}
+
+function arrive(w) {
+  cur = w;
+  revealed = false;
+  peeked = false;
+  // A missed word starts unmarked: moving on without marking it again means
+  // you got it right this time, which takes it off the pile.
+  wasMissed = isMissed(w.id);
+  markedMissed = false;
 }
 
 // Leaving a revealed word updates the missed pile (marked → on, not marked →
-// off) and scores it if you got it right. Returns the points gained.
+// off). If you got it right it scores and counts toward kanji mastery.
+// Returns {gain, notes} for the toast.
 function leave() {
-  if (!cur || !revealed) return 0;
+  const out = { gain: 0, notes: [] };
+  if (!cur || !revealed) return out;
   const i = state.missed.indexOf(cur.id);
   if (markedMissed && i < 0) state.missed.push(cur.id);
   if (!markedMissed && i >= 0) state.missed.splice(i, 1);
-  const gain = markedMissed ? 0 : score(cur);
+  if (markedMissed) recordMiss(cur);
+  else if (!peeked) {
+    const comeback = wasMissed;
+    out.gain = score(cur, comeback);
+    if (out.gain && comeback) out.notes.push("comeback ×2");
+    for (const [k, lv] of recordRight(cur)) {
+      const bonus = state.game ? LEVEL_BONUS[lv] : 0;
+      if (bonus) addPoints(bonus);
+      if (state.game) out.notes.push(`${k} → ${LEVEL_NAME[lv]}${bonus ? ` +${bonus}` : ""}`);
+      out.gain += bonus;
+    }
+    if (state.game) out.notes.push(...checkBadges().map((b) => `🏅 ${b.name}`));
+  }
   save();
   renderScore();
-  return gain;
+  return out;
+}
+
+function announce(out, msg) {
+  const main = [out.gain ? `+${out.gain}` : "", ...out.notes.filter((n) => !n.startsWith("🏅")), msg || ""]
+    .filter(Boolean).join(" · ");
+  if (main) toast(main);
+  for (const n of out.notes.filter((n) => n.startsWith("🏅"))) toast(n);
 }
 
 // ---------------------------------------------------------------- points game
@@ -177,11 +213,17 @@ function wordPoints(w) {
   return Math.max(1, Math.round(raw));
 }
 
-function score(w) {
+function addPoints(n) {
+  state.days[today()] = (state.days[today()] || 0) + n;
+}
+
+// A word from the missed pile that you now get right scores double.
+function score(w, comeback) {
   if (!state.game || state.scored[w.id] === today()) return 0;
-  const gain = wordPoints(w);
+  const gain = wordPoints(w) * (comeback ? 2 : 1);
+  if (comeback) state.comebacks++;
   state.scored[w.id] = today();
-  state.days[today()] = (state.days[today()] || 0) + gain;
+  addPoints(gain);
   for (const s of w.s) if (s.length > 2 && s[0] !== "々" && !hinted(s)) state.rightKanji[s[0]] = s[4];
   return gain;
 }
@@ -236,12 +278,20 @@ function render(via) {
       el.innerHTML =
         `<span class="note${isHard(s) ? " hard" : ""}">${base}${s[1]}</span>` +
         `<button class="k" aria-label="Next word with ${k}">${s[0]}</button>` +
-        `<span class="count${tier ? "" : " dead"}">${count}</span>` + pts;
-      el.querySelector("button").onclick = (e) => { e.stopPropagation(); tap(k, s[2]); };
+        `<span class="count${tier ? "" : " dead"}">${count}</span>` + pts +
+        `<button class="det" aria-label="Details for ${k}">details</button>`;
+      const btn = el.querySelector(".k");
+      onLongPress(btn, () => openDetails(k));
+      btn.onclick = (e) => { e.stopPropagation(); if (!btn.dataset.long) tap(k, s[2]); delete btn.dataset.long; };
+      el.querySelector(".det").onclick = (e) => { e.stopPropagation(); openDetails(k); };
     }
     box.append(el);
   }
 
+  if (practice) {
+    $("via").innerHTML = `practice <b>${practice.k}</b> · ${practice.i}/${practice.ids.length} ` +
+      `<button type="button" id="stop-practice">stop</button>`;
+  }
   $("reading").textContent = cur.r;
   $("meanings").innerHTML = cur.m.map((m) => `<li>${esc(m)}</li>`).join("") +
     (cur.lv < state.wordLevel ? `<li><span class="tag">N${cur.lv} link</span></li>` : "");
@@ -257,18 +307,48 @@ function render(via) {
 
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 
-let toastTimer;
+// Toasts show one after another; old ones are dropped if you tap fast.
+const toasts = [];
+let toastBusy = false;
 function toast(msg) {
+  toasts.push(msg);
+  if (toasts.length > 3) toasts.splice(0, toasts.length - 3);
+  if (!toastBusy) nextToast();
+}
+function nextToast() {
   const t = $("toast");
-  t.textContent = msg;
+  if (!toasts.length) { toastBusy = false; t.classList.remove("on"); return; }
+  toastBusy = true;
+  t.textContent = toasts.shift();
   t.classList.add("on");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("on"), 2200);
+  setTimeout(nextToast, 2200);
+}
+
+// Long press (or right-click) runs fn; the click that follows is marked so
+// it doesn't also navigate.
+function onLongPress(el, fn) {
+  let timer, x, y;
+  const cancel = () => clearTimeout(timer);
+  el.addEventListener("pointerdown", (e) => {
+    x = e.clientX; y = e.clientY;
+    timer = setTimeout(() => { el.dataset.long = "1"; fn(); }, 500);
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (Math.abs(e.clientX - x) > 10 || Math.abs(e.clientY - y) > 10) cancel();
+  });
+  for (const ev of ["pointerup", "pointerleave", "pointercancel"]) el.addEventListener(ev, cancel);
+  el.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    cancel();
+    if (!el.dataset.long) { el.dataset.long = "1"; fn(); }
+    setTimeout(() => delete el.dataset.long, 400);
+  });
 }
 
 // ---------------------------------------------------------------- actions
 
 function tap(k, b) {
+  if (practice) { practiceNext(); return; }
   const [ids, tier] = candidates(k, b, cur.id, true);
   if (!ids.length) {
     const any = candidates(k, b, cur.id)[0].length;
@@ -287,6 +367,12 @@ function reveal() {
 
 $("reveal").onclick = reveal;
 $("card").onclick = reveal;
+$("via").onclick = (e) => {
+  if (e.target.id !== "stop-practice") return;
+  e.stopPropagation();
+  practice = null;
+  render("practice stopped");
+};
 // Marking takes effect at once, so it survives closing the app.
 $("mark").onclick = () => {
   markedMissed = !markedMissed;
@@ -300,15 +386,13 @@ $("mark").onclick = () => {
 };
 $("back").onclick = () => {
   if (!history.length) return;
-  const gain = leave();
-  if (gain) toast(`+${gain}`);
-  cur = byId.get(history.pop());
-  revealed = false;
-  markedMissed = isMissed(cur.id);
+  const out = leave();
+  arrive(byId.get(history.pop()));
   save();
   render("");
+  announce(out);
 };
-$("random").onclick = () => show(fallbackId(cur.id), "random word");
+$("random").onclick = () => { practice = null; show(fallbackId(cur.id), "random word"); };
 $("add").onclick = () => {
   const list = state.exportList, i = list.indexOf(cur.id);
   if (i < 0) list.push(cur.id); else list.splice(i, 1);
@@ -323,6 +407,7 @@ $("missed").onclick = () => {
     toast(markedMissed && revealed ? "This is your only missed word" : "No missed words");
     return;
   }
+  practice = null;
   show(rand(ids), "from your missed pile");
 };
 
@@ -376,12 +461,15 @@ for (const id of ["opt-words", "opt-kanji", "opt-hard"]) {
   };
 }
 $("reset").onclick = () => {
-  if (!confirm("Forget all seen and missed words, points and streaks?")) return;
+  if (!confirm("Forget all seen and missed words, points, streaks, collection and badges?")) return;
   state.missed = [];
   state.seen = {};
   state.days = {};
   state.scored = {};
   state.rightKanji = {};
+  state.kstat = {};
+  state.badges = {};
+  state.comebacks = 0;
   markedMissed = false;
   save();
   $("menu").close();
@@ -432,7 +520,7 @@ $("clear-export").onclick = () => {
 load();
 // Ask the browser not to clear our storage when space runs low.
 navigator.storage?.persist?.().catch(() => {});
-fetch("words.json?v=6")
+fetch("words.json?v=7")
   .then((r) => r.json())
   .then((data) => {
     words = data;
@@ -441,8 +529,7 @@ fetch("words.json?v=6")
     const last = byId.get(state.current);
     if (last && (inDeck(last) || isBridge(last))) {
       // Resume where you left off.
-      cur = byId.get(state.current);
-      markedMissed = isMissed(cur.id);
+      arrive(last);
       render("welcome back");
     } else {
       show(fallbackId(null), "");
