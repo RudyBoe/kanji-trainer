@@ -1,7 +1,7 @@
 // Offline support. The app shell and data are cached on install; pages are
 // fetched network-first (so updates arrive quickly), everything else
 // cache-first. Bump VERSION together with the ?v= tags in index.html.
-const VERSION = "v9";
+const VERSION = "v10";
 const CACHE = `kanji-trainer-${VERSION}`;
 const FILES = [
   "./",

@@ -80,10 +80,18 @@ It's self-graded and stored on your device only: for motivation, not a leaderboa
 
 1. Collect words with **+ Anki**.
 2. Settings → **Anki list** → **Export**. On a phone this opens the share sheet (send to Anki or save to Files); on a computer it downloads a `.txt` file.
-3. In Anki: **File → Import** and pick the file. It creates Basic cards in a deck called *Kanji Trainer*:
-   - front: the word,
-   - back: furigana, reading, meanings, per-kanji readings,
-   - tags: `kanji-trainer` and the word's level (e.g. `N3`).
+3. In Anki: **File → Import**, pick the file and your **6-field note type**. Cards go to the deck *Vocab::Kanji Trainer*; tags are imported from column 7.
+
+   | Field | Content | Example |
+   |---|---|---|
+   | 1 | English meaning (up to 3) | consultation; discussion; discussing |
+   | 2 | Word in kanji, no furigana | 相談 |
+   | 3, 4 | empty | |
+   | 5 | Kana reading | そうだん |
+   | 6 | Each kanji with its meanings, then word type, JLPT level and the kanji readings in this word | 相 Inter-, Mutual, Together<br>談 Discuss, Talk<br><br>Noun · suru verb · N4<br>相 そう (on, N3) · 談 だん (on, N3) |
+   | tags | `kanji-trainer` + level | kanji-trainer N4 |
+
+   Sound changes are noted as e.g. 学 がっ ← がく.
 4. The list stays until you tap **Clear**.
 
 Works with desktop Anki and AnkiDroid. AnkiMobile (iPhone) support for text imports is untested.

@@ -481,19 +481,31 @@ $("reset").onclick = () => {
 
 // ---------------------------------------------------------------- Anki export
 
-// Tab-separated text for Anki's File → Import (Basic note type: Front, Back, tags).
-function ankiText() {
+// Tab-separated text for Anki's File → Import, for a 6-field note type:
+//   1 English · 2 word · 3, 4 empty · 5 kana reading ·
+//   6 each kanji with its meanings, then word type, level and the kanji
+//     readings in this word · column 7: tags.
+const ANKI_DECK = "Vocab::Kanji Trainer";
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+async function ankiText() {
+  const kd = await loadKanji();
   const q = (f) => `"${f.replace(/"/g, '""')}"`;
   const rows = state.exportList.map((id) => byId.get(id)).filter(Boolean).map((w) => {
-    const ruby = w.s.map((s) => (s.length > 2 ? `<ruby>${s[0]}<rt>${s[1]}</rt></ruby>` : s[0])).join("");
-    const notes = w.s.filter((s) => s.length > 2 && s[0] !== "々")
-      .map((s) => `${s[0]} ${s[1]}${s[1] !== s[2] ? ` (${s[2]})` : ""}`).join(" · ");
-    const back = `<div style="font-size:1.6em">${ruby}</div>${w.r}<br><br>` +
-      w.m.map(esc).join("; ") + `<br><br><small>${notes}</small>`;
-    return [q(w.w), q(back), q(`kanji-trainer N${w.lv}`)].join("\t");
+    const segs = w.s.filter((s) => s.length > 2 && s[0] !== "々");
+    const ks = [...new Set(segs.map((s) => s[0]))];
+    const kanji = ks.map((k) => `${k} ${(kd[k]?.m || []).slice(0, 3).map(cap).map(esc).join(", ")}`);
+    const readings = segs.map((s) =>
+      `${s[0]} ${s[1]}${s[1] !== s[2] ? ` ← ${s[2]}` : ""} (${s[3]}, N${s[4]})`).join(" · ");
+    const notes = [...kanji, "", [cap(w.p || ""), `N${w.lv}`].filter(Boolean).join(" · "), readings];
+    return [
+      w.m.slice(0, 3).map(esc).join("; "),
+      w.w, "", "", w.r,
+      notes.join("<br>"),
+      `kanji-trainer N${w.lv}`,
+    ].map(q).join("\t");
   });
-  return ["#separator:tab", "#html:true", "#notetype:Basic", "#deck:Kanji Trainer",
-    "#tags column:3", ...rows].join("\n") + "\n";
+  return ["#separator:tab", "#html:true", `#deck:${ANKI_DECK}`, "#tags column:7", ...rows].join("\n") + "\n";
 }
 
 // On phones, the share sheet can hand the file to Anki, Files, mail, ...;
@@ -511,8 +523,8 @@ async function saveFile(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-$("export").onclick = () =>
-  saveFile(`kanji-trainer-anki-${today()}.txt`, ankiText(), "text/plain");
+$("export").onclick = async () =>
+  saveFile(`kanji-trainer-anki-${today()}.txt`, await ankiText(), "text/plain");
 
 // ---------------------------------------------------------------- backup
 
@@ -554,7 +566,7 @@ load();
 navigator.storage?.persist?.().catch(() => {});
 // Offline support (see sw.js).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-fetch("words.json?v=9")
+fetch("words.json?v=10")
   .then((r) => r.json())
   .then((data) => {
     words = data;

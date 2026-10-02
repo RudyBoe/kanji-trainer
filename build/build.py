@@ -228,6 +228,7 @@ def main():
             "r": r,
             "lv": int(lvl[1]),
             "m": e["meanings"][:4],
+            "p": e.get("pos") or "",
             "s": [[s["t"], s["r"]] + ([s["b"], s["y"], kl] if "b" in s else [])
                   for s, kl in zip(segs, seg_levels(segs, klevel))],
         })
