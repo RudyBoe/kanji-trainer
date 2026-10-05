@@ -296,6 +296,8 @@ function render(via) {
       `<button type="button" id="stop-practice">stop</button>`;
   }
   $("reading").textContent = cur.r;
+  $("pos").innerHTML = posTags(cur.p).map(([j, r, en]) =>
+    `<span class="pos" title="${en}"><b lang="ja">${j}</b> ${r}</span>`).join("");
   $("meanings").innerHTML = cur.m.map((m) => `<li>${esc(m)}</li>`).join("") +
     (cur.lv < state.wordLevel ? `<li><span class="tag">N${cur.lv} link</span></li>` : "");
   $("answer").hidden = !revealed;
@@ -307,6 +309,38 @@ function render(via) {
   $("missed-n").textContent = state.missed.length;
   renderScore();
 }
+
+// Word category in Japanese grammar terms, from JMdict's part of speech:
+// [[japanese, romaji, english], ...], e.g. 動詞 doushi · 五段 godan · 他動詞 tadoushi.
+function posTags(p) {
+  const t = new Set((p || "").split("·").map((x) => x.trim()));
+  const out = [];
+  const add = (cond, ...tag) => { if (cond) out.push(tag); };
+  const verb = ["godan verb", "ichidan verb", "kuru verb", "v5aru", "v2a-s", "vs-s"].some((x) => t.has(x));
+  add(verb, "動詞", "doushi", "verb");
+  add(t.has("godan verb") || t.has("v5aru"), "五段", "godan", "godan (u-)verb");
+  add(t.has("ichidan verb"), "一段", "ichidan", "ichidan (ru-)verb");
+  add(t.has("kuru verb"), "カ変", "kahen", "irregular verb (来る)");
+  add(t.has("vs-s"), "サ変", "sahen", "する verb");
+  add(t.has("noun"), "名詞", "meishi", "noun");
+  add(t.has("i-adjective"), "形容詞", "keiyoushi", "い-adjective");
+  add(t.has("na-adjective") || t.has("taru-adjective"), "形容動詞", "keiyoudoushi", "な-adjective");
+  add(t.has("suru verb"), "＋する", "suru", "also a verb with する");
+  add(verb || t.has("suru verb") ? t.has("transitive verb") : false, "他動詞", "tadoushi", "transitive");
+  add(verb || t.has("suru verb") ? t.has("intransitive verb") : false, "自動詞", "jidoushi", "intransitive");
+  add(t.has("adverb") || t.has("adverb (to)"), "副詞", "fukushi", "adverb");
+  add(t.has("pronoun"), "代名詞", "daimeishi", "pronoun");
+  add(t.has("counter"), "助数詞", "josuushi", "counter");
+  add(t.has("numeric"), "数詞", "suushi", "numeral");
+  add(t.has("adj-pn"), "連体詞", "rentaishi", "pre-noun adjectival");
+  add(t.has("suffix") || t.has("n-suf"), "接尾辞", "setsubiji", "suffix");
+  add(t.has("prefix") || t.has("n-pref"), "接頭辞", "settouji", "prefix");
+  add(t.has("expression"), "表現", "hyougen", "expression");
+  add(t.has("particle"), "助詞", "joshi", "particle");
+  add(!out.length && t.has("no-adjective"), "名詞", "meishi", "noun (takes の)");
+  return out;
+}
+const posText = (p) => posTags(p).map(([j, r]) => `${j} ${r}`).join(" · ");
 
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 
@@ -497,7 +531,7 @@ async function ankiText() {
     const kanji = ks.map((k) => `${k} ${(kd[k]?.m || []).slice(0, 3).map(cap).map(esc).join(", ")}`);
     const readings = segs.map((s) =>
       `${s[0]} ${s[1]}${s[1] !== s[2] ? ` ← ${s[2]}` : ""} (${s[3]}, N${s[4]})`).join(" · ");
-    const notes = [...kanji, "", [cap(w.p || ""), `N${w.lv}`].filter(Boolean).join(" · "), readings];
+    const notes = [...kanji, "", [posText(w.p), `N${w.lv}`].filter(Boolean).join(" · "), readings];
     return [
       w.m.slice(0, 3).map(esc).join("; "),
       w.w, "", "", w.r,
@@ -566,7 +600,7 @@ load();
 navigator.storage?.persist?.().catch(() => {});
 // Offline support (see sw.js).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-fetch("words.json?v=11")
+fetch("words.json?v=12")
   .then((r) => r.json())
   .then((data) => {
     words = data;

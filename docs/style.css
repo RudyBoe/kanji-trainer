@@ -302,3 +302,9 @@ dialog.sheet {
 .badges li small { color: var(--muted); margin-left: 6px; }
 .badges .locked { color: var(--muted); opacity: .6; }
 .badges .locked::before { content: "🔒 "; }
+
+/* word category chips (after Show) */
+#pos { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
+#pos:empty { display: none; }
+.pos { border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; font-size: .8rem; color: var(--muted); }
+.pos b { color: var(--fg); font-weight: 500; font-size: .9rem; }

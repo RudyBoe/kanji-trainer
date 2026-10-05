@@ -7,7 +7,7 @@ A phone-first web app for **kanji retention through vocabulary**. Words are the 
 ## How to use it
 
 1. A word appears, written in kanji. Read it and think of its reading and meaning.
-2. Tap **Show**. You get each kanji's reading *in this word* (with the base reading under it when the sound changed, e.g. 学校: がっ, base がく), the whole reading and the English meanings.
+2. Tap **Show**. You get the word category (名詞 meishi, 動詞 doushi with 五段/一段 and 他動詞/自動詞, 形容詞 keiyoushi, 形容動詞 keiyoudoushi, 副詞 fukushi, …), each kanji's reading *in this word* (with the base reading under it when the sound changed, e.g. 学校: がっ, base がく), the whole reading and the English meanings.
 3. Got it wrong? Tap **✗ Missed**. The word goes on your missed pile and comes back naturally while you browse. Get it right next time and it leaves the pile.
 4. Want it in Anki? Tap **+ Anki** to put it on your export list.
 5. Got it right? Just move on: you score points (see *Points game*).
@@ -88,7 +88,7 @@ It's self-graded and stored on your device only: for motivation, not a leaderboa
    | 2 | Word in kanji, no furigana | 相談 |
    | 3, 4 | empty | |
    | 5 | Kana reading | そうだん |
-   | 6 | Each kanji with its meanings, then word type, JLPT level and the kanji readings in this word | 相 Inter-, Mutual, Together<br>談 Discuss, Talk<br><br>Noun · suru verb · N4<br>相 そう (on, N3) · 談 だん (on, N3) |
+   | 6 | Each kanji with its meanings, then word type, JLPT level and the kanji readings in this word | 相 Inter-, Mutual, Together<br>談 Discuss, Talk<br><br>名詞 meishi · ＋する suru · 他動詞 tadoushi · N4<br>相 そう (on, N3) · 談 だん (on, N3) |
    | tags | `kanji-trainer` + level | kanji-trainer N4 |
 
    Sound changes are noted as e.g. 学 がっ ← がく.
