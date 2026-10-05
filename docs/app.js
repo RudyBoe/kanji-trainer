@@ -566,7 +566,7 @@ load();
 navigator.storage?.persist?.().catch(() => {});
 // Offline support (see sw.js).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-fetch("words.json?v=10")
+fetch("words.json?v=11")
   .then((r) => r.json())
   .then((data) => {
     words = data;
