@@ -261,6 +261,9 @@ function render(via) {
 
   const box = $("word");
   box.textContent = "";
+  const n = [...cur.w].length;
+  box.style.setProperty("--n", n);
+  const detLabel = n >= 6 ? "ⓘ" : "details"; // long words: keep the button narrow
   let prevK = null;
   for (const s of cur.s) {
     const el = document.createElement("div");
@@ -282,7 +285,7 @@ function render(via) {
         `<span class="note${isHard(s) ? " hard" : ""}">${base}${s[1]}</span>` +
         `<button class="k" aria-label="Next word with ${k}">${s[0]}</button>` +
         `<span class="count${tier ? "" : " dead"}">${count}</span>` + pts +
-        `<button class="det" aria-label="Details for ${k}">details</button>`;
+        `<button class="det" aria-label="Details for ${k}">${detLabel}</button>`;
       const btn = el.querySelector(".k");
       onLongPress(btn, () => openDetails(k));
       btn.onclick = (e) => { e.stopPropagation(); if (!btn.dataset.long) tap(k, s[2]); delete btn.dataset.long; };
@@ -600,7 +603,7 @@ load();
 navigator.storage?.persist?.().catch(() => {});
 // Offline support (see sw.js).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-fetch("words.json?v=12")
+fetch("words.json?v=13")
   .then((r) => r.json())
   .then((data) => {
     words = data;

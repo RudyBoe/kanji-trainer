@@ -111,9 +111,12 @@ main {
 }
 .note small { color: var(--muted); font-size: .75rem; font-weight: 400; }
 .show-readings .note, .revealed .note { visibility: visible; }
+/* Kanji and kana share one size, like printed Japanese; it shrinks with
+   the word length (--n characters) so long words stay on one line. */
+#word { --size: max(28px, min(22vw, 112px, calc((min(100vw, 560px) - 56px) / var(--n, 2)))); }
 .k {
   font: inherit;
-  font-size: clamp(64px, 24vw, 128px);
+  font-size: var(--size);
   background: none;
   border-radius: 16px;
   padding: 4px 2px;
@@ -122,7 +125,7 @@ main {
 }
 .k:active { background: var(--btn); }
 .k { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.kana { font-size: clamp(48px, 18vw, 96px); line-height: 1.1; padding-bottom: 4px; color: var(--muted); font-weight: 500; }
+.kana { font-size: var(--size); line-height: 1.1; padding: 4px 1px; color: var(--muted); font-weight: 500; }
 .count { font-family: var(--sans); font-weight: 400; font-size: .75rem; color: var(--muted); height: 1.2em; visibility: hidden; }
 .revealed .count { visibility: visible; }
 .count.dead { color: var(--accent); }
@@ -202,7 +205,7 @@ dialog h2:not(:first-child) { margin: 20px 0 10px; font-size: 1rem; }
 /* details button under each kanji (after Show) */
 .det {
   min-height: 28px;
-  padding: 0 10px;
+  padding: 0 6px;
   margin-top: 4px;
   font: 400 .75rem var(--sans);
   border-radius: 8px;
@@ -210,7 +213,7 @@ dialog h2:not(:first-child) { margin: 20px 0 10px; font-size: 1rem; }
   visibility: hidden;
 }
 .revealed .det { visibility: visible; }
-.det.ph { visibility: hidden !important; pointer-events: none; }
+.det.ph { visibility: hidden !important; pointer-events: none; width: 0; padding: 0; overflow: hidden; }
 #via button { min-height: 28px; padding: 0 10px; font-size: .8rem; margin-left: 4px; }
 
 /* bottom sheets: details & collection */
