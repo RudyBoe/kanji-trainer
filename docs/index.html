@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&display=swap">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 <header>
@@ -24,7 +24,7 @@
   </div>
   <button id="score" hidden aria-label="Collection and badges"><span id="streak"></span><span id="pts"></span></button>
   <div class="side end">
-    <button id="random" aria-label="Random word">⤮</button>
+    <button id="search-btn" aria-label="Search">🔍</button>
     <button id="menu-btn" aria-label="Settings">⋯</button>
   </div>
 </header>
@@ -111,9 +111,17 @@
   <div id="coll-body"></div>
 </dialog>
 
+<dialog id="search" class="sheet">
+  <form method="dialog" class="sheet-head"><h2>Search</h2><button aria-label="Close">✕</button></form>
+  <input id="search-input" type="search" lang="ja" placeholder="kanji, word, かな or English" autocomplete="off" enterkeyhint="search">
+  <button type="button" id="random-in-search">⤮ Random word</button>
+  <div id="search-results"></div>
+</dialog>
+
 <div id="toast" role="status"></div>
-<script src="app.js?v=13"></script>
-<script src="game.js?v=13"></script>
-<script src="details.js?v=13"></script>
+<script src="app.js?v=14"></script>
+<script src="game.js?v=14"></script>
+<script src="details.js?v=14"></script>
+<script src="search.js?v=14"></script>
 </body>
 </html>

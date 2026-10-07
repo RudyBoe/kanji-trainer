@@ -1,7 +1,7 @@
 // Offline support. The app shell and data are cached on install; pages are
 // fetched network-first (so updates arrive quickly), everything else
 // cache-first. Bump VERSION together with the ?v= tags in index.html.
-const VERSION = "v13";
+const VERSION = "v14";
 const CACHE = `kanji-trainer-${VERSION}`;
 const FILES = [
   "./",
@@ -10,6 +10,7 @@ const FILES = [
   `app.js?${VERSION.replace("v", "v=")}`,
   `game.js?${VERSION.replace("v", "v=")}`,
   `details.js?${VERSION.replace("v", "v=")}`,
+  `search.js?${VERSION.replace("v", "v=")}`,
   `words.json?${VERSION.replace("v", "v=")}`,
   `kanji.json?${VERSION.replace("v", "v=")}`,
   "manifest.webmanifest",

@@ -19,7 +19,17 @@ A phone-first web app for **kanji retention through vocabulary**. Words are the 
 
 Under each revealed kanji: `+n` = n words share this reading, `~n` = only other readings, `–` = dead end, `●●●` = points it's worth, and a **details** button.
 
-Top bar: **←** back · **✗ n** jump to a missed word · **🔥 streak** with today's and total points (tap it for your collection) · **⤮** random word · **⋯** settings.
+Top bar: **←** back · **✗ n** jump to a missed word · **🔥 streak** with today's and total points (tap it for your collection) · **🔍** search (and *Random word*) · **⋯** settings.
+
+## Search and links
+
+**🔍 Search** finds words by kanji (学), word (学校), reading in kana (がっこう) or English (school). Kanji in what you type get their own buttons for the details panel, so even a word that isn't in the app leads you to its kanji. Words outside your level setting are shown with their level (e.g. N2) and can still be opened.
+
+**Links** open the app at a word or kanji, e.g. to bookmark or send to a friend:
+
+- `https://rudyboe.github.io/kanji-trainer/docs/?w=学校`: that word (or a search for it if it isn't in the app)
+- `https://rudyboe.github.io/kanji-trainer/docs/?k=学`: a word with that kanji, with the kanji's details open
+- `https://rudyboe.github.io/kanji-trainer/docs/?q=library`: the search with that text
 
 ## Kanji details
 

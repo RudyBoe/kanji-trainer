@@ -4,7 +4,7 @@
 // all words with this kanji, practice. Uses the globals from app.js/game.js.
 
 let kanjiData = null;
-const loadKanji = () => (kanjiData ||= fetch("kanji.json?v=13").then((r) => r.json()));
+const loadKanji = () => (kanjiData ||= fetch("kanji.json?v=14").then((r) => r.json()));
 
 let detailK = null;
 let animTimer = null;

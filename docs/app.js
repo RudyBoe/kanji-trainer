@@ -432,7 +432,6 @@ $("back").onclick = () => {
   render("");
   announce(out);
 };
-$("random").onclick = () => { practice = null; show(fallbackId(cur.id), "random word"); };
 $("add").onclick = () => {
   const list = state.exportList, i = list.indexOf(cur.id);
   if (i < 0) list.push(cur.id); else list.splice(i, 1);
@@ -603,12 +602,13 @@ load();
 navigator.storage?.persist?.().catch(() => {});
 // Offline support (see sw.js).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-fetch("words.json?v=13")
+fetch("words.json?v=14")
   .then((r) => r.json())
   .then((data) => {
     words = data;
     buildIndex();
     history = (state.history || []).filter((id) => byId.has(id));
+    if (openFromLink()) return; // ?w= / ?k= / ?q= links (search.js)
     const last = byId.get(state.current);
     if (last && (inDeck(last) || isBridge(last))) {
       // Resume where you left off.
